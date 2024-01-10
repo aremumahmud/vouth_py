@@ -6,6 +6,7 @@ import librosa
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
+import librosa.effects as effects
 import joblib
 
 class VoiceIdentification:
@@ -14,7 +15,7 @@ class VoiceIdentification:
         self.users_data = {}  # Dictionary to store user data
         self.load_model()
 
-    def enroll_user(self, user_id, audio_files):
+    def enroll_user(self, user_id, audio_files, augmentation_factor=5):
         # Enroll a user by extracting features from their voice and storing the data
         user_features = []
 
@@ -28,10 +29,18 @@ class VoiceIdentification:
                 raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
             # Extract features (Mel spectrogram)
-            mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+            mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20)
             features = np.mean(mel_spectrogram, axis=1)  # Use mean of each row as a feature
 
             user_features.append(features)
+        
+        # Data Augmentation
+        for _ in range(augmentation_factor):
+            # Apply pitch shift
+            y_pitch_shifted = effects.pitch_shift(y, sr, n_steps=np.random.uniform(-2, 2))
+            augmented_mfccs = librosa.feature.mfcc(y=y_pitch_shifted, sr=sr, n_mfcc=20)
+            augmented_features = np.mean(augmented_mfccs, axis=1)
+            user_features.append(augmented_features)
 
         # Store user data
         self.users_data[user_id] = np.mean(user_features, axis=0)
