@@ -38,7 +38,7 @@ class VoiceIdentification:
         for _ in range(augmentation_factor):
             # Apply pitch shift
             y_pitch_shifted = effects.pitch_shift(y, sr, n_steps=np.random.uniform(-2, 2))
-            augmented_mfccs = librosa.feature.mfcc(y=y_pitch_shifted, sr=sr, n_mfcc=20)
+            augmented_mfccs = librosa.feature.mfcc(y=y_pitch_shifted, sr=sr, n_mfcc=16)
             augmented_features = np.mean(augmented_mfccs, axis=1)
             user_features.append(augmented_features)
 
@@ -57,7 +57,7 @@ class VoiceIdentification:
             raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
         # Extract features (Mel spectrogram)
-        mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20)
+        mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=16)
         features = np.mean(mel_spectrogram, axis=1)
 
         # Compare with enrolled users' data
