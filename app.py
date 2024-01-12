@@ -27,16 +27,21 @@ def authenticate_user():
 
     if audio_url:
         try:
-            user_id = voice_id_system.authenticate_user(audio_url)
+            result = voice_id_system.authenticate_user(audio_url)
+            
+            user_id = result[0]
+            confidence = result[1]
+            
             if user_id:
                 return jsonify({'status': 'success', 'user_id': user_id, 'message': 'Authentication successful'})
             else:
-                return jsonify({'status': 'error', 'message': 'Authentication failed'})
+                return jsonify({'status': 'error','confidence': confidence, 'message': 'Authentication failed'})
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
     else:
         return jsonify({'status': 'error', 'message': 'Invalid request parameters'})
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0')
+    # app.run(debug=True,host='0.0.0.0')
+    app.run(debug=True)
     print("Flask server has started!")  # Add this line to print a message to the console when the server starts

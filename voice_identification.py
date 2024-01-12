@@ -71,10 +71,10 @@ class VoiceIdentification:
         confidence = similarities[predicted_user]
 
         # Set a threshold for confidence
-        threshold = 0.7
+        threshold = 0.87
         print(confidence)
         if confidence > threshold:
-            return predicted_user
+            return [predicted_user , confidence]
         else:
             return None
 
