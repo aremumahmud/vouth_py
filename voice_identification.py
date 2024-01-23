@@ -37,7 +37,7 @@ class VoiceIdentification:
         # Data Augmentation
         for _ in range(augmentation_factor):
             # Apply pitch shift
-            y_pitch_shifted = effects.pitch_shift(y,sr, n_steps=2)
+            y_pitch_shifted = effects.pitch_shift(y,sr=sr, n_steps=2)
             augmented_mfccs = librosa.feature.mfcc(y=y_pitch_shifted, sr=sr, n_mfcc=16)
             augmented_features = np.mean(augmented_mfccs, axis=1)
             user_features.append(augmented_features)
