@@ -42,6 +42,6 @@ def authenticate_user():
         return jsonify({'status': 'error', 'message': 'Invalid request parameters'})
 
 if __name__ == '__main__':
-    # app.run(debug=True,host='0.0.0.0')
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0')
+    # app.run(debug=True)
     print("Flask server has started!")  # Add this line to print a message to the console when the server starts
