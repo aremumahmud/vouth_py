@@ -29,19 +29,29 @@ class VoiceIdentification:
                 raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
             # Extract features (Mel spectrogram)
-            mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=15)
+            mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=16)
             features = np.mean(mel_spectrogram, axis=1)  # Use mean of each row as a feature
 
             user_features.append(features)
-        
-        # Data Augmentation
+
+        print('hello')
+       # Data Augmentation
         for _ in range(augmentation_factor):
             # Apply pitch shift
-            y_pitch_shifted = effects.pitch_shift(y,sr, n_steps=2)
+            y_pitch_shifted = effects.pitch_shift(y,sr=sr, n_steps=2)
             augmented_mfccs = librosa.feature.mfcc(y=y_pitch_shifted, sr=sr, n_mfcc=16)
-            augmented_features = np.mean(augmented_mfccs, axis=1)
+            
+            augmented_features = np.mean(augmented_mfccs, axis=1, dtype=object)
+            
             user_features.append(augmented_features)
+        print('restock')
+        
+        
+        # Ensure all elements have the same length and dtype
+        max_length = max(len(arr) for arr in user_features)
+        user_features = [np.pad(np.array(x, dtype=np.float32), (0, max_length - len(x))) for x in user_features]
 
+        # print(user_features)
         # Store user data
         self.users_data[user_id] = np.mean(user_features, axis=0)
         self.save_model()
@@ -57,12 +67,16 @@ class VoiceIdentification:
             raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
         # Extract features (Mel spectrogram)
-        mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=15)
-        features = np.mean(mel_spectrogram, axis=1)
-
+        mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=16)
+        features = np.mean(mel_spectrogram, axis=1,dtype=object)
+        # print(features)
         # Compare with enrolled users' data
         similarities = {}
         for user_id, enrolled_features in self.users_data.items():
+
+             # Ensure the enrolled features have the same length as the features
+            enrolled_features = np.pad(enrolled_features, (0, len(features) - len(enrolled_features)))
+        
             similarity = np.dot(features, enrolled_features) / (np.linalg.norm(features) * np.linalg.norm(enrolled_features))
             similarities[user_id] = similarity
 
@@ -71,8 +85,8 @@ class VoiceIdentification:
         confidence = similarities[predicted_user]
 
         # Set a threshold for confidence
-        threshold = 0.97
-        print(confidence)
+        threshold = 0.99993
+        # print(confidence)
         if confidence > threshold:
             return [predicted_user , confidence]
         else:
