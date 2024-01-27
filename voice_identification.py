@@ -28,6 +28,10 @@ class VoiceIdentification:
             else:
                 raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
+            #  # Apply noise cancellation
+            # noise = effects.preemphasis(y)
+            # y = self._spectral_subtraction(y, noise)
+
             # Extract features (Mel spectrogram)
             mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=16)
             features = np.mean(mel_spectrogram, axis=1)  # Use mean of each row as a feature
@@ -37,8 +41,16 @@ class VoiceIdentification:
         print('hello')
        # Data Augmentation
         for _ in range(augmentation_factor):
+            
             # Apply pitch shift
             y_pitch_shifted = effects.pitch_shift(y,sr=sr, n_steps=2)
+
+                        
+            # # Apply noise cancellation to augmented audio
+            # noise_augmented = effects.preemphasis(y_pitch_shifted)
+            # y_pitch_shifted = self._spectral_subtraction(y_pitch_shifted, noise_augmented)
+
+
             augmented_mfccs = librosa.feature.mfcc(y=y_pitch_shifted, sr=sr, n_mfcc=16)
             
             augmented_features = np.mean(augmented_mfccs, axis=1, dtype=object)
@@ -66,6 +78,11 @@ class VoiceIdentification:
         else:
             raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
+
+        # Apply noise cancellation to the input audio
+        # noise_input = effects.preemphasis(y)
+        # y = self._spectral_subtraction(y, noise_input)
+
         # Extract features (Mel spectrogram)
         mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=16)
         features = np.mean(mel_spectrogram, axis=1,dtype=object)
@@ -90,7 +107,7 @@ class VoiceIdentification:
         if confidence > threshold:
             return [predicted_user , confidence]
         else:
-            return None
+            return [None , confidence]
 
     def save_model(self):
         joblib.dump(self.users_data, self.model_file)
@@ -98,6 +115,11 @@ class VoiceIdentification:
     def load_model(self):
         if os.path.exists(self.model_file):
             self.users_data = joblib.load(self.model_file)
+
+    def _spectral_subtraction(self, audio, noise, alpha=1):
+        # Spectral Subtraction for noise cancellation
+        # alpha is a parameter that controls the strength of the noise reduction
+        return np.maximum(0, np.abs(audio) - alpha * np.abs(noise))
 
 # Example usage:
 
