@@ -65,9 +65,9 @@ class VoiceIdentification:
         threshold = 0.7
         print(confidence)
         if confidence > threshold:
-            return predicted_user
+            return [predicted_user , confidence]
         else:
-            return None
+            return [None , predicted_user]
 
     def save_model(self):
         joblib.dump(self.users_data, self.model_file)
