@@ -28,7 +28,7 @@ class VoiceIdentification:
                 raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
             # Extract features (Mel spectrogram)
-            mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr)
+            mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr , n_mfcc=16)
             features = np.mean(mel_spectrogram, axis=1)  # Use mean of each row as a feature
 
             user_features.append(features)
@@ -48,7 +48,7 @@ class VoiceIdentification:
             raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
         # Extract features (Mel spectrogram)
-        mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr)
+        mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, n_mfcc=16)
         features = np.mean(mel_spectrogram, axis=1)
 
         # Compare with enrolled users' data
