@@ -33,9 +33,9 @@ def authenticate_user():
             confidence = result[1]
             
             if user_id:
-                return jsonify({'status': 'success', 'user_id': user_id,'confidence': confidence, 'message': 'Authentication successful'})
+                return jsonify({'status': 'success', 'user_id': user_id, 'message': 'Authentication successful'})
             else:
-                return jsonify({'status': 'error','confidence': confidence, 'message': 'Authentication failed'})
+                return jsonify({'status': 'error', 'message': 'Authentication failed'})
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
     else:
