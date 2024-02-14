@@ -6,6 +6,7 @@ import librosa
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
+import librosa.effects as effects
 import joblib
 
 class VoiceIdentification:
@@ -14,7 +15,7 @@ class VoiceIdentification:
         self.users_data = {}  # Dictionary to store user data
         self.load_model()
 
-    def enroll_user(self, user_id, audio_files):
+    def enroll_user(self, user_id, audio_files, augmentation_factor=5):
         # Enroll a user by extracting features from their voice and storing the data
         user_features = []
 
@@ -27,12 +28,24 @@ class VoiceIdentification:
             else:
                 raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
+            #  # Apply noise cancellation
+            # noise = effects.preemphasis(y)
+            # y = self._spectral_subtraction(y, noise)
+
             # Extract features (Mel spectrogram)
-            mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr )
+            mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=16)
             features = np.mean(mel_spectrogram, axis=1)  # Use mean of each row as a feature
 
             user_features.append(features)
 
+        print('hello')
+      
+        
+        # Ensure all elements have the same length and dtype
+        max_length = max(len(arr) for arr in user_features)
+        user_features = [np.pad(np.array(x, dtype=np.float32), (0, max_length - len(x))) for x in user_features]
+
+        # print(user_features)
         # Store user data
         self.users_data[user_id] = np.mean(user_features, axis=0)
         self.save_model()
@@ -47,13 +60,22 @@ class VoiceIdentification:
         else:
             raise Exception(f"Failed to fetch audio from URL: {audio_file}")
 
-        # Extract features (Mel spectrogram)
-        mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr)
-        features = np.mean(mel_spectrogram, axis=1)
 
+        # Apply noise cancellation to the input audio
+        # noise_input = effects.preemphasis(y)
+        # y = self._spectral_subtraction(y, noise_input)
+
+        # Extract features (Mel spectrogram)
+        mel_spectrogram = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=16)
+        features = np.mean(mel_spectrogram, axis=1,dtype=object)
+        # print(features)
         # Compare with enrolled users' data
         similarities = {}
         for user_id, enrolled_features in self.users_data.items():
+
+             # Ensure the enrolled features have the same length as the features
+            enrolled_features = np.pad(enrolled_features, (0, len(features) - len(enrolled_features)))
+        
             similarity = np.dot(features, enrolled_features) / (np.linalg.norm(features) * np.linalg.norm(enrolled_features))
             similarities[user_id] = similarity
 
@@ -62,12 +84,12 @@ class VoiceIdentification:
         confidence = similarities[predicted_user]
 
         # Set a threshold for confidence
-        threshold = 0.7
-        print(confidence)
+        threshold = 0.9953
+        print(confidence, predicted_user )
         if confidence > threshold:
             return [predicted_user , confidence]
         else:
-            return [None , predicted_user]
+            return [None , confidence]
 
     def save_model(self):
         joblib.dump(self.users_data, self.model_file)
@@ -76,5 +98,9 @@ class VoiceIdentification:
         if os.path.exists(self.model_file):
             self.users_data = joblib.load(self.model_file)
 
-# Example usage:
+    def _spectral_subtraction(self, audio, noise, alpha=1):
+        # Spectral Subtraction for noise cancellation
+        # alpha is a parameter that controls the strength of the noise reduction
+        return np.maximum(0, np.abs(audio) - alpha * np.abs(noise))
 
+# Example usage:
